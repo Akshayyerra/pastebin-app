@@ -1,13 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import CopyButton from "../../../components/CopyButton";
 
-export default async function PastePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  // ✅ FIX: unwrap params
+type PastePageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function PastePage({ params }: PastePageProps) {
+  // ✅ REQUIRED IN NEXT.JS 16
   const { id } = await params;
+
+  if (!id) {
+    return (
+      <div className="container">
+        <div className="card">Invalid paste ID</div>
+      </div>
+    );
+  }
 
   const paste = await prisma.paste.findUnique({
     where: { id },
@@ -22,7 +32,7 @@ export default async function PastePage({
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const shareUrl = `${baseUrl}/paste/${paste.id}`;
 
@@ -33,7 +43,12 @@ export default async function PastePage({
         <p className="subtitle">ID: {paste.id}</p>
 
         <div className="share-link">
-          <a href={shareUrl} className="link">
+          <a
+            href={shareUrl}
+            className="link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {shareUrl}
           </a>
           <CopyButton text={shareUrl} />
